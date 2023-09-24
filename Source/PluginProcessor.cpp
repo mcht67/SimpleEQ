@@ -166,7 +166,8 @@ bool SimpleEQAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* SimpleEQAudioProcessor::createEditor()
 {
-    return new SimpleEQAudioProcessorEditor (*this);
+    // return new SimpleEQAudioProcessorEditor (*this);
+    return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
@@ -175,6 +176,53 @@ void SimpleEQAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+}
+
+juce::AudioProcessorValueTreeState::ParameterLayout
+SimpleEQAudioProcessor::createParameterLayout()
+{
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
+
+    layout.add( std::make_unique<juce::AudioParameterFloat>("LowCut Freq",
+                                                            "LowCut Freq",
+                                                            juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f),
+                                                            20.f) );
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("HighCut Freq",
+                                                           "HighCut Freq",
+                                                           juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f),
+                                                           20000.f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("Peak Freq",
+                                                           "Peak CutFreq",
+                                                           juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f),
+                                                           750.f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("Peak Gain",
+                                                           "Peak Gain",
+                                                           juce::NormalisableRange<float>(-24.f, 24.f, 0.5f, 1.f),
+                                                           0.f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("Peak Quality",
+                                                           "Peak Quality",
+                                                           juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
+                                                           1.f));
+
+    juce::StringArray stringArray;
+    int numFilterOrders = 4;
+    for (int i = 0; i < numFilterOrders; ++i)
+    {
+        juce::String str;
+        str << (12 + i*12);
+        str << " db/Oct";
+        stringArray.add(str);
+    }
+    //alternativ hard coded (no need for calculation): juce::StringArray stringArray2("12 db/Oct", "24 db/Oct", "36 db/Oct", "46 db/Oct");
+
+    layout.add( std::make_unique<juce::AudioParameterChoice>("LowCutSlope", "LowCutSlope", stringArray, 0) );
+    layout.add( std::make_unique<juce::AudioParameterChoice>("HighCutSlope", "HighCutSlope", stringArray, 0) );
+
+    return layout;
 }
 
 void SimpleEQAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
