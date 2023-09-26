@@ -14,11 +14,19 @@
 /**
 */
 
+enum FilterSlope
+{
+    _12dB,
+    _24dB,
+    _36dB,
+    _48dB,
+};
+
 struct ChainSettings // Initialisierung in header???
 {
-    float peakFreq{ 0 }, peakGainInDecibel{ 0 }, peakQuality{ 0 };
-    float lowCutFreq{ 0 }, highCutFreq{ 0 };
-    int lowCutSlope{ 0 }, highCutSlope{ 0 };
+    float peakFreq { 0 }, peakGainInDecibel { 0 }, peakQuality { 0 };
+    float lowCutFreq { 0 }, highCutFreq { 0 };
+    FilterSlope lowCutSlope { FilterSlope::_12dB }, highCutSlope { FilterSlope::_12dB };
 };
 
 ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
