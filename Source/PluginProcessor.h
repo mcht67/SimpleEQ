@@ -94,10 +94,8 @@ private:
         HighCut
     };
 
-    void updatePeakFilter(const ChainSettings& chainSettings);
     using Coefficients = Filter::CoefficientsPtr;
     static void updateCoefficients(Coefficients& old, const Coefficients& replacements);
-
 
     // why has index to be part of the template?
     template <int index, typename ChainElementType, typename CoefficientsType>
@@ -139,6 +137,14 @@ private:
         }
         }
     }
+
+    void updatePeakFilter(const ChainSettings& chainSettings);
+
+    void updateLowCutFilter(const ChainSettings& chainSettings);
+
+    void updateHighCutFilter(const ChainSettings& chainSettings);
+
+    void updateFilters();
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleEQAudioProcessor)
