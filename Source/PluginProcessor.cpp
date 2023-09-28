@@ -116,99 +116,12 @@ void SimpleEQAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
     
     auto& leftLowCut = leftChain.get<ChainPositions::LowCut>();
 
-    // nor for loop, because conditions has to be tested -> slow??
-    leftLowCut.setBypassed<0>(true);
-    leftLowCut.setBypassed<1>(true);
-    leftLowCut.setBypassed<2>(true);
-    leftLowCut.setBypassed<3>(true);
-
-    switch (chainSettings.lowCutSlope)
-    {
-        case _12dB:
-        {
-            *leftLowCut.get<0>().coefficients = *lowCutCoefficients[0];
-            leftLowCut.setBypassed<0>(false);
-            break;
-        }
-        case _24dB:
-        {
-            *leftLowCut.get<0>().coefficients = *lowCutCoefficients[0];
-            leftLowCut.setBypassed<0>(false);
-            *leftLowCut.get<1>().coefficients = *lowCutCoefficients[1];
-            leftLowCut.setBypassed<1>(false);
-            break;
-        }
-        case _36dB:
-        {
-            *leftLowCut.get<0>().coefficients = *lowCutCoefficients[0];
-            leftLowCut.setBypassed<0>(false);
-            *leftLowCut.get<1>().coefficients = *lowCutCoefficients[1];
-            leftLowCut.setBypassed<1>(false);
-            *leftLowCut.get<2>().coefficients = *lowCutCoefficients[2];
-            leftLowCut.setBypassed<2>(false);
-            break;
-        }
-        case _48dB:
-        {
-            *leftLowCut.get<0>().coefficients = *lowCutCoefficients[0];
-            leftLowCut.setBypassed<0>(false);
-            *leftLowCut.get<1>().coefficients = *lowCutCoefficients[1];
-            leftLowCut.setBypassed<1>(false);
-            *leftLowCut.get<2>().coefficients = *lowCutCoefficients[2];
-            leftLowCut.setBypassed<2>(false);
-            *leftLowCut.get<3>().coefficients = *lowCutCoefficients[3];
-            leftLowCut.setBypassed<3>(false);
-            break;
-        }
-    }
+    SimpleEQAudioProcessor::updateCutFilter(leftLowCut, lowCutCoefficients, chainSettings.lowCutSlope);
 
     auto& rightLowCut = rightChain.get<ChainPositions::LowCut>();
 
-    // nor for loop, because conditions has to be tested -> slow??
-    rightLowCut.setBypassed<0>(true);
-    rightLowCut.setBypassed<1>(true);
-    rightLowCut.setBypassed<2>(true);
-    rightLowCut.setBypassed<3>(true);
+    SimpleEQAudioProcessor::updateCutFilter(rightLowCut, lowCutCoefficients, chainSettings.lowCutSlope);
 
-    switch (chainSettings.lowCutSlope)
-    {
-        case _12dB:
-        {
-            *rightLowCut.get<0>().coefficients = *lowCutCoefficients[0];
-            rightLowCut.setBypassed<0>(false);
-            break;
-        }
-        case _24dB:
-        {
-            *rightLowCut.get<0>().coefficients = *lowCutCoefficients[0];
-            rightLowCut.setBypassed<0>(false);
-            *rightLowCut.get<1>().coefficients = *lowCutCoefficients[1];
-            rightLowCut.setBypassed<1>(false);
-            break;
-        }
-        case _36dB:
-        {
-            *rightLowCut.get<0>().coefficients = *lowCutCoefficients[0];
-            rightLowCut.setBypassed<0>(false);
-            *rightLowCut.get<1>().coefficients = *lowCutCoefficients[1];
-            rightLowCut.setBypassed<1>(false);
-            *rightLowCut.get<2>().coefficients = *lowCutCoefficients[2];
-            rightLowCut.setBypassed<2>(false);
-            break;
-        }
-        case _48dB:
-        {
-            *rightLowCut.get<0>().coefficients = *lowCutCoefficients[0];
-            rightLowCut.setBypassed<0>(false);
-            *rightLowCut.get<1>().coefficients = *lowCutCoefficients[1];
-            rightLowCut.setBypassed<1>(false);
-            *rightLowCut.get<2>().coefficients = *lowCutCoefficients[2];
-            rightLowCut.setBypassed<2>(false);
-            *rightLowCut.get<3>().coefficients = *lowCutCoefficients[3];
-            rightLowCut.setBypassed<3>(false);
-            break;
-        }
-    }
 }
 
 void SimpleEQAudioProcessor::releaseResources()
@@ -266,99 +179,12 @@ void SimpleEQAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
     
     auto& leftLowCut = leftChain.get<ChainPositions::LowCut>();
 
-    // nor for loop, because conditions has to be tested -> slow??
-    leftLowCut.setBypassed<0>(true);
-    leftLowCut.setBypassed<1>(true);
-    leftLowCut.setBypassed<2>(true);
-    leftLowCut.setBypassed<3>(true);
-
-    switch (chainSettings.lowCutSlope)
-    {
-        case _12dB:
-        {
-            *leftLowCut.get<0>().coefficients = *lowCutCoefficients[0];
-            leftLowCut.setBypassed<0>(false);
-            break;
-        }
-        case _24dB:
-        {
-            *leftLowCut.get<0>().coefficients = *lowCutCoefficients[0];
-            leftLowCut.setBypassed<0>(false);
-            *leftLowCut.get<1>().coefficients = *lowCutCoefficients[1];
-            leftLowCut.setBypassed<1>(false);
-            break;
-        }
-        case _36dB:
-        {
-            *leftLowCut.get<0>().coefficients = *lowCutCoefficients[0];
-            leftLowCut.setBypassed<0>(false);
-            *leftLowCut.get<1>().coefficients = *lowCutCoefficients[1];
-            leftLowCut.setBypassed<1>(false);
-            *leftLowCut.get<2>().coefficients = *lowCutCoefficients[2];
-            leftLowCut.setBypassed<2>(false);
-            break;
-        }
-        case _48dB:
-        {
-            *leftLowCut.get<0>().coefficients = *lowCutCoefficients[0];
-            leftLowCut.setBypassed<0>(false);
-            *leftLowCut.get<1>().coefficients = *lowCutCoefficients[1];
-            leftLowCut.setBypassed<1>(false);
-            *leftLowCut.get<2>().coefficients = *lowCutCoefficients[2];
-            leftLowCut.setBypassed<2>(false);
-            *leftLowCut.get<3>().coefficients = *lowCutCoefficients[3];
-            leftLowCut.setBypassed<3>(false);
-            break;
-        }
-    }
+    SimpleEQAudioProcessor::updateCutFilter(leftLowCut, lowCutCoefficients, chainSettings.lowCutSlope);
 
     auto& rightLowCut = rightChain.get<ChainPositions::LowCut>();
 
-    // nor for loop, because conditions has to be tested -> slow??
-    rightLowCut.setBypassed<0>(true);
-    rightLowCut.setBypassed<1>(true);
-    rightLowCut.setBypassed<2>(true);
-    rightLowCut.setBypassed<3>(true);
+    SimpleEQAudioProcessor::updateCutFilter(rightLowCut, lowCutCoefficients, chainSettings.lowCutSlope);
 
-    switch (chainSettings.lowCutSlope)
-    {
-        case _12dB:
-        {
-            *rightLowCut.get<0>().coefficients = *lowCutCoefficients[0];
-            rightLowCut.setBypassed<0>(false);
-            break;
-        }
-        case _24dB:
-        {
-            *rightLowCut.get<0>().coefficients = *lowCutCoefficients[0];
-            rightLowCut.setBypassed<0>(false);
-            *rightLowCut.get<1>().coefficients = *lowCutCoefficients[1];
-            rightLowCut.setBypassed<1>(false);
-            break;
-        }
-        case _36dB:
-        {
-            *rightLowCut.get<0>().coefficients = *lowCutCoefficients[0];
-            rightLowCut.setBypassed<0>(false);
-            *rightLowCut.get<1>().coefficients = *lowCutCoefficients[1];
-            rightLowCut.setBypassed<1>(false);
-            *rightLowCut.get<2>().coefficients = *lowCutCoefficients[2];
-            rightLowCut.setBypassed<2>(false);
-            break;
-        }
-        case _48dB:
-        {
-            *rightLowCut.get<0>().coefficients = *lowCutCoefficients[0];
-            rightLowCut.setBypassed<0>(false);
-            *rightLowCut.get<1>().coefficients = *lowCutCoefficients[1];
-            rightLowCut.setBypassed<1>(false);
-            *rightLowCut.get<2>().coefficients = *lowCutCoefficients[2];
-            rightLowCut.setBypassed<2>(false);
-            *rightLowCut.get<3>().coefficients = *lowCutCoefficients[3];
-            rightLowCut.setBypassed<3>(false);
-            break;
-        }
-    }
 
     juce::dsp::AudioBlock<float> block(buffer);
 
@@ -416,8 +242,6 @@ void SimpleEQAudioProcessor::updatePeakFilter(const ChainSettings& chainSettings
         chainSettings.peakQuality,
         juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibel));
 
-   // *leftChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
-   // *rightChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients;
     updateCoefficients(leftChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
 }
@@ -425,7 +249,6 @@ void SimpleEQAudioProcessor::updatePeakFilter(const ChainSettings& chainSettings
 void SimpleEQAudioProcessor::updateCoefficients(Coefficients& old, const Coefficients& replacements)
 {
     *old = *replacements;
-
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout

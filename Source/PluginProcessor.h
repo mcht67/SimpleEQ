@@ -98,6 +98,48 @@ private:
     using Coefficients = Filter::CoefficientsPtr;
     static void updateCoefficients(Coefficients& old, const Coefficients& replacements);
 
+
+    // why has index to be part of the template?
+    template <int index, typename ChainElementType, typename CoefficientsType>
+    void updateCutFilterElement(ChainElementType& cutFilter, const CoefficientsType& cutCoefficients)
+    {
+        updateCoefficients(cutFilter.get<index>().coefficients, cutCoefficients[index]);
+        cutFilter.setBypassed<index>(false);
+    }
+
+    // warum hier im header file definiert? -> wird überall hinkopiert, wo der header inkludiert wird -> notwendig bei classes in c++ -> checken
+    template <typename ChainElementType, typename CoefficientType>
+    void updateCutFilter(ChainElementType& cutFilter,
+                          const CoefficientType& cutCoefficients,
+                          const FilterSlope& filterSlope)
+    {
+        cutFilter.setBypassed<0>(true);
+        cutFilter.setBypassed<1>(true);
+        cutFilter.setBypassed<2>(true);
+        cutFilter.setBypassed<3>(true);
+
+        switch ( filterSlope )
+        {
+
+        case _48dB:
+        {
+            updateCutFilterElement<3>(cutFilter, cutCoefficients);
+        }
+        case _36dB:
+        {
+            updateCutFilterElement<2>(cutFilter, cutCoefficients);
+        }
+        case _24dB:
+        {
+            updateCutFilterElement<1>(cutFilter, cutCoefficients);
+        }
+        case _12dB:
+        {
+            updateCutFilterElement<0>(cutFilter, cutCoefficients);
+        }
+        }
+    }
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleEQAudioProcessor)
 };
