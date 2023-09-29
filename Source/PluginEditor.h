@@ -22,14 +22,14 @@ struct CustomRotarySlider : juce::Slider {
 //==============================================================================
 /**
 */
-class SimpleEQAudioProcessorEditor  : public juce::AudioProcessorEditor
+class SimpleEQAudioProcessorEditor : public juce::AudioProcessorEditor
 {
 public:
-    SimpleEQAudioProcessorEditor (SimpleEQAudioProcessor&);
+    SimpleEQAudioProcessorEditor(SimpleEQAudioProcessor&);
     ~SimpleEQAudioProcessorEditor() override;
 
     //==============================================================================
-    void paint (juce::Graphics&) override;
+    void paint(juce::Graphics&) override;
     void resized() override;
 
 private:
@@ -38,27 +38,42 @@ private:
     SimpleEQAudioProcessor& audioProcessor;
 
     CustomRotarySlider lowCutFreqSlider,
-                        highCutFreqSlider,
-                        peakFilterQualitySlider,
-                        peakFilterGainSlider,
-                        peakFilterFreqSlider,
-                        lowCutSlopeSlider,
-                        highCutSlopeSlider;
+        highCutFreqSlider,
+        peakFilterQualitySlider,
+        peakFilterGainSlider,
+        peakFilterFreqSlider,
+        lowCutSlopeSlider,
+        highCutSlopeSlider;
 
-    // definition in header?
-    std::vector<juce::Component*> SimpleEQAudioProcessorEditor::getComponents() {
-        return
-        {
-            &lowCutFreqSlider,
-            &highCutFreqSlider,
-            &peakFilterQualitySlider,
-            &peakFilterGainSlider,
-            &peakFilterFreqSlider,
-            &lowCutSlopeSlider,
-            &highCutSlopeSlider
-        };
-    }
+    using APVTS = juce::AudioProcessorValueTreeState;
+    using Attachment = APVTS::SliderAttachment;
+
+    Attachment lowCutSlopeSliderAttachment,
+                lowCutFreqSliderAttachment,
+                peakFilterQualitySliderAttachment,
+                peakFilterGainSliderAttachment,
+                peakFilterFreqSliderAttachment,
+                highCutSlopeSliderAttachment,
+                highCutFreqSliderAttachment;
+
+// definition in header?
+    std::vector<juce::Component*> getComponents();
+    //{
+    //    return
+    //    {
+    //        &lowCutFreqSlider,
+    //        &highCutFreqSlider,
+    //        &peakFilterQualitySlider,
+    //        &peakFilterGainSlider,
+    //        &peakFilterFreqSlider,
+    //        &lowCutSlopeSlider,
+    //        &highCutSlopeSlider
+    //    };
+    //}
 
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleEQAudioProcessorEditor)
+
+
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimpleEQAudioProcessorEditor)
 };

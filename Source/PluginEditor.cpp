@@ -11,7 +11,14 @@
 
 //==============================================================================
 SimpleEQAudioProcessorEditor::SimpleEQAudioProcessorEditor (SimpleEQAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+    : AudioProcessorEditor (&p), audioProcessor (p),
+    lowCutSlopeSliderAttachment(audioProcessor.apvts, "LowCut Slope", lowCutSlopeSlider),
+    lowCutFreqSliderAttachment(audioProcessor.apvts, "LowCut Freq", lowCutFreqSlider),
+    peakFilterQualitySliderAttachment(audioProcessor.apvts, "Peak Quality", peakFilterQualitySlider),
+    peakFilterGainSliderAttachment(audioProcessor.apvts, "Peak Gain", peakFilterGainSlider),
+    peakFilterFreqSliderAttachment(audioProcessor.apvts, "Peak Freq", peakFilterFreqSlider),
+    highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope", highCutSlopeSlider),
+    highCutFreqSliderAttachment(audioProcessor.apvts, "HighCut Freq", highCutFreqSlider)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
@@ -72,5 +79,18 @@ void SimpleEQAudioProcessorEditor::resized()
 
     highCutSlopeSlider.setBounds(highCutSlopeSliderArea);
     highCutFreqSlider.setBounds(highCutFreqSliderArea);
+}
+
+std::vector<juce::Component*> SimpleEQAudioProcessorEditor::getComponents() {
+    return
+    {
+        &lowCutFreqSlider,
+        &highCutFreqSlider,
+        &peakFilterQualitySlider,
+        &peakFilterGainSlider,
+        &peakFilterFreqSlider,
+        &lowCutSlopeSlider,
+        &highCutSlopeSlider
+    };
 }
 
