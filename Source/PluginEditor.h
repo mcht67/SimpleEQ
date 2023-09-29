@@ -41,7 +41,9 @@ private:
                         highCutFreqSlider,
                         peakFilterQualitySlider,
                         peakFilterGainSlider,
-                        peakFilterFreqSlider;
+                        peakFilterFreqSlider,
+                        lowCutSlopeSlider,
+                        highCutSlopeSlider;
 
     // definition in header?
     std::vector<juce::Component*> SimpleEQAudioProcessorEditor::getComponents() {
@@ -51,7 +53,9 @@ private:
             &highCutFreqSlider,
             &peakFilterQualitySlider,
             &peakFilterGainSlider,
-            &peakFilterFreqSlider
+            &peakFilterFreqSlider,
+            &lowCutSlopeSlider,
+            &highCutSlopeSlider
         };
     }
 

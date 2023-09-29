@@ -47,22 +47,30 @@ void SimpleEQAudioProcessorEditor::resized()
     auto slidersArea = area;
 
 
-    float FilterAreaSize = area.getWidth() / 3;
+    float FilterAreaSize = area.getWidth() * 0.33;
     auto lowCutArea = slidersArea.removeFromLeft(FilterAreaSize);
     auto peakFilterArea = slidersArea.removeFromLeft(FilterAreaSize);
     auto highCutArea = slidersArea;
 
-    float peakFilterSliderAreaSize = peakFilterArea.getHeight() / 3;
+    auto lowCutSlopeSliderArea = lowCutArea.removeFromTop(lowCutArea.getHeight() * 0.5);
+    auto lowCutFreqSliderArea = lowCutArea;
+
+    float peakFilterSliderAreaSize = peakFilterArea.getHeight() * 0.33;
     auto peakFilterQualityArea = peakFilterArea.removeFromTop(peakFilterSliderAreaSize);
     auto peakFilterGainArea = peakFilterArea.removeFromTop(peakFilterSliderAreaSize);
     auto peakFilterFreqArea = peakFilterArea;
 
-    lowCutFreqSlider.setBounds(lowCutArea);
+    auto highCutSlopeSliderArea = highCutArea.removeFromTop(highCutArea.getHeight() * 0.5);
+    auto highCutFreqSliderArea = highCutArea;
+
+    lowCutSlopeSlider.setBounds(lowCutSlopeSliderArea);
+    lowCutFreqSlider.setBounds(lowCutFreqSliderArea);
 
     peakFilterQualitySlider.setBounds(peakFilterQualityArea);
     peakFilterGainSlider.setBounds(peakFilterGainArea);
     peakFilterFreqSlider.setBounds(peakFilterFreqArea);
 
-    highCutFreqSlider.setBounds(highCutArea);
+    highCutSlopeSlider.setBounds(highCutSlopeSliderArea);
+    highCutFreqSlider.setBounds(highCutFreqSliderArea);
 }
 
