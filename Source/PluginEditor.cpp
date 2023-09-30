@@ -81,6 +81,25 @@ void SimpleEQAudioProcessorEditor::resized()
     highCutFreqSlider.setBounds(highCutFreqSliderArea);
 }
 
+void SimpleEQAudioProcessorEditor::parameterValueChanged (int parameterIndex, float newValue)
+{
+    parametersChanged.set(true);
+}
+
+void SimpleEQAudioProcessorEditor::parameterGestureChanged(int parameterIndex, bool gestureIsStarting) { };
+
+void SimpleEQAudioProcessorEditor::timerCallback()
+{
+    if (parametersChanged.compareAndSetBool(false, true))
+    {
+        // getSettings
+
+        // updateCurve
+
+        // repaint
+    }
+}
+
 std::vector<juce::Component*> SimpleEQAudioProcessorEditor::getComponents() {
     return
     {
