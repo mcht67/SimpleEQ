@@ -14,6 +14,10 @@
 /**
 */
 
+using Filter = juce::dsp::IIR::Filter<float>;
+using Coefficients = Filter::CoefficientsPtr;
+using CoefficientsArray = juce::ReferenceCountedArray<Coefficients>; // unfortunately doesnt work needs more investigation
+
 enum FilterSlope
 {
     _12dB,
@@ -76,12 +80,15 @@ public:
 
     static juce::AudioProcessorValueTreeState::ParameterLayout
         createParameterLayout();
+    
+    Coefficients makePeakFilter(const ChainSettings& chainSettings);
+    auto makeLowCutFilter(const ChainSettings& chainSettings);
+    auto makeHighCutFilter(const ChainSettings& chainSettings);
 
     juce::AudioProcessorValueTreeState apvts { *this, nullptr, "Parameters", createParameterLayout() }; // why initialized in header? this way it possibly gets copied and duplicated which causes a linking error
 
 private:
 
-    using Filter = juce::dsp::IIR::Filter<float>;
     using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
     using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
 
@@ -94,7 +101,6 @@ private:
         HighCut
     };
 
-    using Coefficients = Filter::CoefficientsPtr;
     static void updateCoefficients(Coefficients& old, const Coefficients& replacements);
 
     // why has index to be part of the template?
@@ -105,7 +111,6 @@ private:
         cutFilter.setBypassed<index>(false);
     }
 
-    // warum hier im header file definiert? -> wird überall hinkopiert, wo der header inkludiert wird -> notwendig bei classes in c++ -> checken
     template <typename ChainElementType, typename CoefficientType>
     void updateCutFilter(ChainElementType& cutFilter,
                           const CoefficientType& cutCoefficients,
