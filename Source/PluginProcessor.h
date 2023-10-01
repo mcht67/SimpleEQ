@@ -16,7 +16,7 @@
 
 using Filter = juce::dsp::IIR::Filter<float>;
 using Coefficients = Filter::CoefficientsPtr;
-using CoefficientsArray = juce::ReferenceCountedArray<Coefficients>; // unfortunately doesnt work needs more investigation
+using CoefficientsArray = juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>>;
 
 enum FilterSlope
 {
@@ -32,6 +32,10 @@ struct ChainSettings // Initialisierung in header???
     float lowCutFreq { 0 }, highCutFreq { 0 };
     FilterSlope lowCutSlope { FilterSlope::_12dB }, highCutSlope { FilterSlope::_12dB };
 };
+
+Coefficients makePeakFilter(const ChainSettings& chainSettings, double sampleRate);
+CoefficientsArray makeLowCutFilter(const ChainSettings& chainSettings, double sampleRate);
+CoefficientsArray makeHighCutFilter(const ChainSettings& chainSettings, double sampleRate);
 
 ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
 
@@ -80,10 +84,6 @@ public:
 
     static juce::AudioProcessorValueTreeState::ParameterLayout
         createParameterLayout();
-    
-    Coefficients makePeakFilter(const ChainSettings& chainSettings);
-    auto makeLowCutFilter(const ChainSettings& chainSettings);
-    auto makeHighCutFilter(const ChainSettings& chainSettings);
 
     juce::AudioProcessorValueTreeState apvts { *this, nullptr, "Parameters", createParameterLayout() }; // why initialized in header? this way it possibly gets copied and duplicated which causes a linking error
 
