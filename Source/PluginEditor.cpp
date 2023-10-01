@@ -9,9 +9,10 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-ResponseCurveComponent::ResponseCurveComponent()
+ResponseCurveComponent::ResponseCurveComponent(SimpleEQAudioProcessor& audioProcessor)
 {
-    
+    filterChain = &audioProcessor.leftChain;
+    sampleRate = audioProcessor.getSampleRate();
 }
 
 ResponseCurveComponent::~ResponseCurveComponent()
@@ -28,35 +29,6 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
     std::vector<double> magnitudes(width, 1.f);
 
     updateMagnitudes(magnitudes, width);
-
-    //for (int i = 0; i < width; i++)
-    //{
-        //double freq = juce::mapToLog10(double(i) / double(width), 20.0, 20000.0);
-
-    //    magnitudes[i] *= peakCoefficients->getMagnitudeForFrequency(freq, sampleRate);
-
-    //    //switch (filterSlope)
-    //    //{
-
-    //    //case _48dB:
-    //    //{
-    //    //    updateCutFilterElement<3>(cutFilter, cutCoefficients);
-    //    //}
-    //    //case _36dB:
-    //    //{
-    //    //    updateCutFilterElement<2>(cutFilter, cutCoefficients);
-    //    //}
-    //    //case _24dB:
-    //    //{
-    //    //    updateCutFilterElement<1>(cutFilter, cutCoefficients);
-    //    //}
-    //    //case _12dB:
-    //    //{
-    //    //    updateCutFilterElement<0>(cutFilter, cutCoefficients);
-    //    //}
-    //    //}
-
-    //}
 
     // DRAWING
     
@@ -86,24 +58,36 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
 
 };
 
-void ResponseCurveComponent::updateFilterCoefficients()
-{
-    this->peakCoefficients = makePeakFilter(chainSettings, sampleRate);
-}
-
 void ResponseCurveComponent::updateMagnitudes(std::vector<double>& magnitudes, int width)
 {
-    if (peakCoefficients != nullptr)
+    for (int i = 0; i < width; i++)
     {
-        for (int i = 0; i < width; i++)
-        {
-            double freq = juce::mapToLog10(double(i) / double(width), 20.0, 20000.0);
+        double freq = juce::mapToLog10(double(i) / double(width), 20.0, 20000.0);
 
-            magnitudes[i] *= this->peakCoefficients->getMagnitudeForFrequency(freq, sampleRate);
-        }
+        magnitudes[i] *= filterChain->get<ChainPositions::Peak>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
     }
-}
 
+    //switch (filterSlope)
+    //{
+
+    //case _48dB:
+    //{
+    //    updateCutFilterElement<3>(cutFilter, cutCoefficients);
+    //}
+    //case _36dB:
+    //{
+    //    updateCutFilterElement<2>(cutFilter, cutCoefficients);
+    //}
+    //case _24dB:
+    //{
+    //    updateCutFilterElement<1>(cutFilter, cutCoefficients);
+    //}
+    //case _12dB:
+    //{
+    //    updateCutFilterElement<0>(cutFilter, cutCoefficients);
+    //}
+    //}
+}
 
 //==============================================================================
 SimpleEQAudioProcessorEditor::SimpleEQAudioProcessorEditor (SimpleEQAudioProcessor& p)
@@ -116,7 +100,7 @@ SimpleEQAudioProcessorEditor::SimpleEQAudioProcessorEditor (SimpleEQAudioProcess
     peakFilterFreqSliderAttachment(audioProcessor.apvts, "Peak Freq", peakFilterFreqSlider),
     highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope", highCutSlopeSlider),
     highCutFreqSliderAttachment(audioProcessor.apvts, "HighCut Freq", highCutFreqSlider),
-    responseCurveComponent()
+    responseCurveComponent(audioProcessor)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
@@ -208,10 +192,11 @@ void SimpleEQAudioProcessorEditor::timerCallback()
 {
     if (parametersChanged.compareAndSetBool(false, true))
     {
-        responseCurveComponent.chainSettings = getChainSettings(audioProcessor.apvts);
-        responseCurveComponent.sampleRate = audioProcessor.getSampleRate(); 
+        //responseCurveComponent.chainSettings = getChainSettings(audioProcessor.apvts);
+        //responseCurveComponent.sampleRate = audioProcessor.getSampleRate(); 
        
-        responseCurveComponent.updateFilterCoefficients();
+        //responseCurveComponent.updateFilterCoefficients();
+       //updateMonoChain
 
         repaint();
     }

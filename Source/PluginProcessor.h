@@ -37,6 +37,16 @@ Coefficients makePeakFilter(const ChainSettings& chainSettings, double sampleRat
 CoefficientsArray makeLowCutFilter(const ChainSettings& chainSettings, double sampleRate);
 CoefficientsArray makeHighCutFilter(const ChainSettings& chainSettings, double sampleRate);
 
+using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
+using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
+
+enum ChainPositions
+{
+    LowCut,
+    Peak,
+    HighCut
+    };
+
 ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
 
 class SimpleEQAudioProcessor  : public juce::AudioProcessor
@@ -82,24 +92,14 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    MonoChain leftChain, rightChain;
+
     static juce::AudioProcessorValueTreeState::ParameterLayout
         createParameterLayout();
 
     juce::AudioProcessorValueTreeState apvts { *this, nullptr, "Parameters", createParameterLayout() }; // why initialized in header? this way it possibly gets copied and duplicated which causes a linking error
 
 private:
-
-    using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
-    using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
-
-    MonoChain leftChain, rightChain;
-
-    enum ChainPositions
-    {
-        LowCut,
-        Peak,
-        HighCut
-    };
 
     static void updateCoefficients(Coefficients& old, const Coefficients& replacements);
 

@@ -21,18 +21,10 @@ struct CustomRotarySlider : juce::Slider {
 
 struct ResponseCurveComponent : juce::Component {
     public:
-        ResponseCurveComponent();
-        ~ResponseCurveComponent();
-
-        ChainSettings chainSettings;
+        MonoChain* filterChain;
         double sampleRate;
         void paint(juce::Graphics& g) override;
-        void updateFilterCoefficients();
-
     private:
-        Coefficients peakCoefficients;
-        CoefficientsArray lowCutCoefficients;
-        CoefficientsArray highCutCoefficients;
         void updateMagnitudes (std::vector<double>& magnitudes, int width);
 
 };
