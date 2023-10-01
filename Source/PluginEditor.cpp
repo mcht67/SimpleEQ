@@ -9,16 +9,114 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+ResponseCurveComponent::ResponseCurveComponent()
+{
+    
+}
+
+ResponseCurveComponent::~ResponseCurveComponent()
+{
+
+}
+
+void ResponseCurveComponent::paint(juce::Graphics& g) 
+{
+    ////using namespace juce;
+
+    int width = getWidth();
+
+    std::vector<double> magnitudes(width, 1.f);
+
+    updateMagnitudes(magnitudes, width);
+
+    //for (int i = 0; i < width; i++)
+    //{
+        //double freq = juce::mapToLog10(double(i) / double(width), 20.0, 20000.0);
+
+    //    magnitudes[i] *= peakCoefficients->getMagnitudeForFrequency(freq, sampleRate);
+
+    //    //switch (filterSlope)
+    //    //{
+
+    //    //case _48dB:
+    //    //{
+    //    //    updateCutFilterElement<3>(cutFilter, cutCoefficients);
+    //    //}
+    //    //case _36dB:
+    //    //{
+    //    //    updateCutFilterElement<2>(cutFilter, cutCoefficients);
+    //    //}
+    //    //case _24dB:
+    //    //{
+    //    //    updateCutFilterElement<1>(cutFilter, cutCoefficients);
+    //    //}
+    //    //case _12dB:
+    //    //{
+    //    //    updateCutFilterElement<0>(cutFilter, cutCoefficients);
+    //    //}
+    //    //}
+
+    //}
+
+    // DRAWING
+    
+    juce::Path responseCurve;
+
+    const double outputMin = getBottom();
+    const double outputMax = getY();
+
+    // lambda to map input value y-coordinate
+    auto map = [outputMin, outputMax](double input)
+        {
+            return juce::jmap(input, -24.0, 24.0, outputMin, outputMax);
+        };
+
+    responseCurve.startNewSubPath( getX(), map(magnitudes[0]) );
+
+    for (size_t i = 1; i < magnitudes.size(); i++)
+    {
+        responseCurve.lineTo( getX() + i, map(magnitudes[i]) );
+    }
+
+    g.setColour(juce::Colours::orange);
+    g.drawRoundedRectangle(getLocalBounds().toFloat(), 4.f, 1.f);
+
+    g.setColour(juce::Colours::white);
+    g.strokePath( responseCurve, juce::PathStrokeType(2.f) );
+
+};
+
+void ResponseCurveComponent::updateFilterCoefficients()
+{
+    this->peakCoefficients = makePeakFilter(chainSettings, sampleRate);
+}
+
+void ResponseCurveComponent::updateMagnitudes(std::vector<double>& magnitudes, int width)
+{
+    if (peakCoefficients != nullptr)
+    {
+        for (int i = 0; i < width; i++)
+        {
+            double freq = juce::mapToLog10(double(i) / double(width), 20.0, 20000.0);
+
+            magnitudes[i] *= this->peakCoefficients->getMagnitudeForFrequency(freq, sampleRate);
+        }
+    }
+}
+
+
 //==============================================================================
 SimpleEQAudioProcessorEditor::SimpleEQAudioProcessorEditor (SimpleEQAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p),
+
     lowCutSlopeSliderAttachment(audioProcessor.apvts, "LowCut Slope", lowCutSlopeSlider),
     lowCutFreqSliderAttachment(audioProcessor.apvts, "LowCut Freq", lowCutFreqSlider),
     peakFilterQualitySliderAttachment(audioProcessor.apvts, "Peak Quality", peakFilterQualitySlider),
     peakFilterGainSliderAttachment(audioProcessor.apvts, "Peak Gain", peakFilterGainSlider),
     peakFilterFreqSliderAttachment(audioProcessor.apvts, "Peak Freq", peakFilterFreqSlider),
     highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope", highCutSlopeSlider),
-    highCutFreqSliderAttachment(audioProcessor.apvts, "HighCut Freq", highCutFreqSlider)
+    highCutFreqSliderAttachment(audioProcessor.apvts, "HighCut Freq", highCutFreqSlider),
+    responseCurveComponent()
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
@@ -27,11 +125,28 @@ SimpleEQAudioProcessorEditor::SimpleEQAudioProcessorEditor (SimpleEQAudioProcess
         addAndMakeVisible(component);
     }
 
+    const juce::Array<juce::AudioProcessorParameter*>& params = audioProcessor.getParameters();
+
+    for (auto param : params)
+    {
+        param->addListener(this);
+    }
+
+    startTimer(60);
+
     setSize (400, 300);
 }
 
+
+
 SimpleEQAudioProcessorEditor::~SimpleEQAudioProcessorEditor()
 {
+    const juce::Array<juce::AudioProcessorParameter*>& params = audioProcessor.getParameters();
+
+    for (auto param : params)
+    {
+        param->removeListener(this);
+    }
 }
 
 //==============================================================================
@@ -50,9 +165,8 @@ void SimpleEQAudioProcessorEditor::resized()
 
     auto area = getLocalBounds();
 
-    auto curveArea = area.removeFromTop(area.getHeight() * 0.33);
+    auto responseCurveArea = area.removeFromTop(area.getHeight() * 0.33);
     auto slidersArea = area;
-
 
     float FilterAreaSize = area.getWidth() * 0.33;
     auto lowCutArea = slidersArea.removeFromLeft(FilterAreaSize);
@@ -69,6 +183,8 @@ void SimpleEQAudioProcessorEditor::resized()
 
     auto highCutSlopeSliderArea = highCutArea.removeFromTop(highCutArea.getHeight() * 0.5);
     auto highCutFreqSliderArea = highCutArea;
+
+    responseCurveComponent.setBounds(responseCurveArea);
 
     lowCutSlopeSlider.setBounds(lowCutSlopeSliderArea);
     lowCutFreqSlider.setBounds(lowCutFreqSliderArea);
@@ -92,11 +208,12 @@ void SimpleEQAudioProcessorEditor::timerCallback()
 {
     if (parametersChanged.compareAndSetBool(false, true))
     {
-        // getSettings
+        responseCurveComponent.chainSettings = getChainSettings(audioProcessor.apvts);
+        responseCurveComponent.sampleRate = audioProcessor.getSampleRate(); 
+       
+        responseCurveComponent.updateFilterCoefficients();
 
-        // updateCurve
-
-        // repaint
+        repaint();
     }
 }
 
@@ -109,7 +226,8 @@ std::vector<juce::Component*> SimpleEQAudioProcessorEditor::getComponents() {
         &peakFilterGainSlider,
         &peakFilterFreqSlider,
         &lowCutSlopeSlider,
-        &highCutSlopeSlider
+        &highCutSlopeSlider,
+        &responseCurveComponent
     };
 }
 

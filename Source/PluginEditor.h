@@ -19,6 +19,24 @@ struct CustomRotarySlider : juce::Slider {
     }
 };
 
+struct ResponseCurveComponent : juce::Component {
+    public:
+        ResponseCurveComponent();
+        ~ResponseCurveComponent();
+
+        ChainSettings chainSettings;
+        double sampleRate;
+        void paint(juce::Graphics& g) override;
+        void updateFilterCoefficients();
+
+    private:
+        Coefficients peakCoefficients;
+        CoefficientsArray lowCutCoefficients;
+        CoefficientsArray highCutCoefficients;
+        void updateMagnitudes (std::vector<double>& magnitudes, int width);
+
+};
+
 //==============================================================================
 /**
 */
@@ -64,7 +82,7 @@ private:
                     highCutSlopeSliderAttachment,
                     highCutFreqSliderAttachment;
 
-    juce::Component responseCurveComponent;
+    ResponseCurveComponent responseCurveComponent;
 
     //struct ResponseCurveComponent : juce::Component, juce::AudioProcessorParameter::Listener, juce::Timer 
     //{
