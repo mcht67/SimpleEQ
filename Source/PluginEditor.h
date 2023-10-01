@@ -21,12 +21,15 @@ struct CustomRotarySlider : juce::Slider {
 
 struct ResponseCurveComponent : juce::Component {
     public:
+        ResponseCurveComponent(SimpleEQAudioProcessor& audioProcessor);
+        ~ResponseCurveComponent();
+
         MonoChain* filterChain;
         double sampleRate;
         void paint(juce::Graphics& g) override;
+
     private:
         void updateMagnitudes (std::vector<double>& magnitudes, int width);
-
 };
 
 //==============================================================================

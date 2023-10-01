@@ -64,7 +64,9 @@ void ResponseCurveComponent::updateMagnitudes(std::vector<double>& magnitudes, i
     {
         double freq = juce::mapToLog10(double(i) / double(width), 20.0, 20000.0);
 
-        magnitudes[i] *= filterChain->get<ChainPositions::Peak>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+        auto coeff = filterChain->get<ChainPositions::Peak>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+
+        magnitudes[i] = juce::Decibels::gainToDecibels( (1.f * coeff));
     }
 
     //switch (filterSlope)
