@@ -12,8 +12,7 @@
 ResponseCurveComponent::ResponseCurveComponent(SimpleEQAudioProcessor& audioProcessor)
     : audioProcessor(audioProcessor)
 {
-   //ResponseCurveComponent::audioProcessor = audioProc;
-   updateFilterCoefficients();
+
 }
 
 ResponseCurveComponent::~ResponseCurveComponent()
@@ -61,46 +60,51 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
 
 void ResponseCurveComponent::updateMagnitudes(std::vector<double>& magnitudes, int width)
 {
+    ChainSettings chainSettings = getChainSettings(audioProcessor.apvts);
+    double sampleRate = audioProcessor.getSampleRate();
+
     for (int i = 0; i < width; i++)
     {
+        double mag = 1.f;
 
         double freq = juce::mapToLog10(double(i) / double(width), 20.0, 20000.0);
 
-        double peakCoeff = peakCoefficients->getMagnitudeForFrequency(freq, audioProcessor.getSampleRate() );
+        this->peakCoefficients = makePeakFilter(chainSettings, sampleRate);
 
-        magnitudes[i] = juce::Decibels::gainToDecibels( (1.f * peakCoeff));
+        double peakCoeff = peakCoefficients->getMagnitudeForFrequency(freq,  sampleRate);
+
+        mag *= peakCoeff; 
+
+        this->lowCutCoefficients = makeLowCutFilter(chainSettings, sampleRate);
+
+        switch (chainSettings.lowCutSlope)
+        {
+
+        case _48dB:
+        {
+            double lowCut3Coeff = lowCutCoefficients[3]->getMagnitudeForFrequency(freq, sampleRate);
+            mag *= lowCut3Coeff;
+        }
+        case _36dB:
+        {
+            double lowCut2Coeff = lowCutCoefficients[2]->getMagnitudeForFrequency(freq, sampleRate);
+            mag *= lowCut2Coeff;
+        }
+        case _24dB:
+        {
+            double lowCut1Coeff = lowCutCoefficients[1]->getMagnitudeForFrequency(freq, sampleRate);
+            mag *= lowCut1Coeff;
+        }
+        case _12dB:
+        {
+            double lowCut0Coeff = lowCutCoefficients[0]->getMagnitudeForFrequency(freq, sampleRate);
+            mag *= lowCut0Coeff;
+        }
+        }
+        magnitudes[i] = juce::Decibels::gainToDecibels(mag);
     }
-
-    //switch (filterSlope)
-    //{
-
-    //case _48dB:
-    //{
-    //    updateCutFilterElement<3>(cutFilter, cutCoefficients);
-    //}
-    //case _36dB:
-    //{
-    //    updateCutFilterElement<2>(cutFilter, cutCoefficients);
-    //}
-    //case _24dB:
-    //{
-    //    updateCutFilterElement<1>(cutFilter, cutCoefficients);
-    //}
-    //case _12dB:
-    //{
-    //    updateCutFilterElement<0>(cutFilter, cutCoefficients);
-    //}
-    //}
 }
 
-void ResponseCurveComponent::updateFilterCoefficients()
-{
-    double sampleRate = audioProcessor.getSampleRate();
-    ChainSettings chainSettings = getChainSettings(audioProcessor.apvts);
-
-    this->peakCoefficients = makePeakFilter(chainSettings, sampleRate);
-    this->lowCutCoefficients = makeLowCutFilter(chainSettings, sampleRate);
-}
 
 //==============================================================================
 SimpleEQAudioProcessorEditor::SimpleEQAudioProcessorEditor (SimpleEQAudioProcessor& p)
@@ -204,10 +208,8 @@ void SimpleEQAudioProcessorEditor::parameterGestureChanged(int parameterIndex, b
 void SimpleEQAudioProcessorEditor::timerCallback()
 {
     if (parametersChanged.compareAndSetBool(false, true))
-    {       
-        responseCurveComponent.updateFilterCoefficients();
-
-        repaint();
+    {  
+        responseCurveComponent.repaint();
     }
 }
 

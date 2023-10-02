@@ -24,8 +24,6 @@ struct ResponseCurveComponent : juce::Component {
         ResponseCurveComponent(SimpleEQAudioProcessor&);
         ~ResponseCurveComponent();
 
-        void ResponseCurveComponent::updateFilterCoefficients();
-
     private:
         SimpleEQAudioProcessor& audioProcessor;
         Coefficients peakCoefficients;
