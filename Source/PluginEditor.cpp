@@ -80,26 +80,52 @@ void ResponseCurveComponent::updateMagnitudes(std::vector<double>& magnitudes, i
         switch (chainSettings.lowCutSlope)
         {
 
-        case _48dB:
-        {
-            double lowCut3Coeff = lowCutCoefficients[3]->getMagnitudeForFrequency(freq, sampleRate);
-            mag *= lowCut3Coeff;
+            case _48dB:
+            {
+                double lowCut3Coeff = lowCutCoefficients[3]->getMagnitudeForFrequency(freq, sampleRate);
+                mag *= lowCut3Coeff;
+            }
+            case _36dB:
+            {
+                double lowCut2Coeff = lowCutCoefficients[2]->getMagnitudeForFrequency(freq, sampleRate);
+                mag *= lowCut2Coeff;
+            }
+            case _24dB:
+            {
+                double lowCut1Coeff = lowCutCoefficients[1]->getMagnitudeForFrequency(freq, sampleRate);
+                mag *= lowCut1Coeff;
+            }
+            case _12dB:
+            {
+                double lowCut0Coeff = lowCutCoefficients[0]->getMagnitudeForFrequency(freq, sampleRate);
+                mag *= lowCut0Coeff;
+            }
         }
-        case _36dB:
+        this->highCutCoefficients = makeHighCutFilter(chainSettings, sampleRate);
+        
+        switch (chainSettings.highCutSlope)
         {
-            double lowCut2Coeff = lowCutCoefficients[2]->getMagnitudeForFrequency(freq, sampleRate);
-            mag *= lowCut2Coeff;
-        }
-        case _24dB:
-        {
-            double lowCut1Coeff = lowCutCoefficients[1]->getMagnitudeForFrequency(freq, sampleRate);
-            mag *= lowCut1Coeff;
-        }
-        case _12dB:
-        {
-            double lowCut0Coeff = lowCutCoefficients[0]->getMagnitudeForFrequency(freq, sampleRate);
-            mag *= lowCut0Coeff;
-        }
+
+            case _48dB:
+            {
+                double highCut3Coeff = highCutCoefficients[3]->getMagnitudeForFrequency(freq, sampleRate);
+                mag *= highCut3Coeff;
+            }
+            case _36dB:
+            {
+                double highCut2Coeff = highCutCoefficients[2]->getMagnitudeForFrequency(freq, sampleRate);
+                mag *= highCut2Coeff;
+            }
+            case _24dB:
+            {
+                double highCut1Coeff = highCutCoefficients[1]->getMagnitudeForFrequency(freq, sampleRate);
+                mag *= highCut1Coeff;
+            }
+            case _12dB:
+            {
+                double highCut0Coeff = highCutCoefficients[0]->getMagnitudeForFrequency(freq, sampleRate);
+                mag *= highCut0Coeff;
+            }
         }
         magnitudes[i] = juce::Decibels::gainToDecibels(mag);
     }
