@@ -21,13 +21,13 @@ struct CustomRotarySlider : juce::Slider {
 
 struct ResponseCurveComponent : juce::Component {
     public:
-        ResponseCurveComponent(SimpleEQAudioProcessor& audioProcessor);
+        ResponseCurveComponent(SimpleEQAudioProcessor&);
         ~ResponseCurveComponent();
 
-        double sampleRate;
-        void ResponseCurveComponent::updateFilterCoefficients(const ChainSettings& chainSettings);
+        void ResponseCurveComponent::updateFilterCoefficients();
 
     private:
+        SimpleEQAudioProcessor& audioProcessor;
         Coefficients peakCoefficients;
         CoefficientsArray lowCutCoefficients;
         CoefficientsArray highCutCoefficients;

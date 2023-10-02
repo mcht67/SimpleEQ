@@ -10,9 +10,10 @@
 #include "PluginEditor.h"
 
 ResponseCurveComponent::ResponseCurveComponent(SimpleEQAudioProcessor& audioProcessor)
+    : audioProcessor(audioProcessor)
 {
-   sampleRate = audioProcessor.getSampleRate();
-   updateFilterCoefficients(getChainSettings(audioProcessor.apvts));
+   //ResponseCurveComponent::audioProcessor = audioProc;
+   updateFilterCoefficients();
 }
 
 ResponseCurveComponent::~ResponseCurveComponent()
@@ -65,8 +66,7 @@ void ResponseCurveComponent::updateMagnitudes(std::vector<double>& magnitudes, i
 
         double freq = juce::mapToLog10(double(i) / double(width), 20.0, 20000.0);
 
-        //auto coeff = filterChain->get<ChainPositions::Peak>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
-        double peakCoeff = peakCoefficients->getMagnitudeForFrequency(freq, sampleRate);
+        double peakCoeff = peakCoefficients->getMagnitudeForFrequency(freq, audioProcessor.getSampleRate() );
 
         magnitudes[i] = juce::Decibels::gainToDecibels( (1.f * peakCoeff));
     }
@@ -93,9 +93,13 @@ void ResponseCurveComponent::updateMagnitudes(std::vector<double>& magnitudes, i
     //}
 }
 
-void ResponseCurveComponent::updateFilterCoefficients(const ChainSettings& chainSettings)
+void ResponseCurveComponent::updateFilterCoefficients()
 {
+    double sampleRate = audioProcessor.getSampleRate();
+    ChainSettings chainSettings = getChainSettings(audioProcessor.apvts);
+
     this->peakCoefficients = makePeakFilter(chainSettings, sampleRate);
+    this->lowCutCoefficients = makeLowCutFilter(chainSettings, sampleRate);
 }
 
 //==============================================================================
@@ -201,8 +205,7 @@ void SimpleEQAudioProcessorEditor::timerCallback()
 {
     if (parametersChanged.compareAndSetBool(false, true))
     {       
-        responseCurveComponent.sampleRate = audioProcessor.getSampleRate();
-        responseCurveComponent.updateFilterCoefficients( getChainSettings(audioProcessor.apvts) );
+        responseCurveComponent.updateFilterCoefficients();
 
         repaint();
     }
