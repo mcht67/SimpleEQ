@@ -24,11 +24,14 @@ struct ResponseCurveComponent : juce::Component {
         ResponseCurveComponent(SimpleEQAudioProcessor& audioProcessor);
         ~ResponseCurveComponent();
 
-        MonoChain* filterChain;
         double sampleRate;
-        void paint(juce::Graphics& g) override;
+        void ResponseCurveComponent::updateFilterCoefficients(const ChainSettings& chainSettings);
 
     private:
+        Coefficients peakCoefficients;
+        CoefficientsArray lowCutCoefficients;
+        CoefficientsArray highCutCoefficients;
+        void paint(juce::Graphics& g) override;
         void updateMagnitudes (std::vector<double>& magnitudes, int width);
 };
 

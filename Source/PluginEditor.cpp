@@ -11,8 +11,8 @@
 
 ResponseCurveComponent::ResponseCurveComponent(SimpleEQAudioProcessor& audioProcessor)
 {
-    filterChain = &audioProcessor.leftChain;
-    sampleRate = audioProcessor.getSampleRate();
+   sampleRate = audioProcessor.getSampleRate();
+   updateFilterCoefficients(getChainSettings(audioProcessor.apvts));
 }
 
 ResponseCurveComponent::~ResponseCurveComponent()
@@ -62,11 +62,13 @@ void ResponseCurveComponent::updateMagnitudes(std::vector<double>& magnitudes, i
 {
     for (int i = 0; i < width; i++)
     {
+
         double freq = juce::mapToLog10(double(i) / double(width), 20.0, 20000.0);
 
-        auto coeff = filterChain->get<ChainPositions::Peak>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+        //auto coeff = filterChain->get<ChainPositions::Peak>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+        double peakCoeff = peakCoefficients->getMagnitudeForFrequency(freq, sampleRate);
 
-        magnitudes[i] = juce::Decibels::gainToDecibels( (1.f * coeff));
+        magnitudes[i] = juce::Decibels::gainToDecibels( (1.f * peakCoeff));
     }
 
     //switch (filterSlope)
@@ -89,6 +91,11 @@ void ResponseCurveComponent::updateMagnitudes(std::vector<double>& magnitudes, i
     //    updateCutFilterElement<0>(cutFilter, cutCoefficients);
     //}
     //}
+}
+
+void ResponseCurveComponent::updateFilterCoefficients(const ChainSettings& chainSettings)
+{
+    this->peakCoefficients = makePeakFilter(chainSettings, sampleRate);
 }
 
 //==============================================================================
@@ -193,12 +200,9 @@ void SimpleEQAudioProcessorEditor::parameterGestureChanged(int parameterIndex, b
 void SimpleEQAudioProcessorEditor::timerCallback()
 {
     if (parametersChanged.compareAndSetBool(false, true))
-    {
-        //responseCurveComponent.chainSettings = getChainSettings(audioProcessor.apvts);
-        //responseCurveComponent.sampleRate = audioProcessor.getSampleRate(); 
-       
-        //responseCurveComponent.updateFilterCoefficients();
-       //updateMonoChain
+    {       
+        responseCurveComponent.sampleRate = audioProcessor.getSampleRate();
+        responseCurveComponent.updateFilterCoefficients( getChainSettings(audioProcessor.apvts) );
 
         repaint();
     }
