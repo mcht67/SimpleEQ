@@ -23,6 +23,8 @@ struct ResponseCurveComponent : juce::Component {
     public:
         ResponseCurveComponent(SimpleEQAudioProcessor&);
         ~ResponseCurveComponent();
+        
+        void updateFilters();
 
     private:
         SimpleEQAudioProcessor& audioProcessor;
@@ -31,6 +33,7 @@ struct ResponseCurveComponent : juce::Component {
         CoefficientsArray highCutCoefficients;
         void paint(juce::Graphics& g) override;
         void updateMagnitudes (std::vector<double>& magnitudes, int width);
+        //void updateMagnitudeByCutCoefficients(double& mag, CoefficientsArray cutCoefficients);
 };
 
 //==============================================================================
@@ -45,6 +48,10 @@ public:
     ~SimpleEQAudioProcessorEditor() override;
 
     //==============================================================================
+
+
+private:
+
     void paint(juce::Graphics&) override;
     void resized() override;
 
@@ -53,7 +60,6 @@ public:
 
     void timerCallback() override;
 
-private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     SimpleEQAudioProcessor& audioProcessor;

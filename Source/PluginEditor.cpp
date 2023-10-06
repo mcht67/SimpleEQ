@@ -60,7 +60,7 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
 
 void ResponseCurveComponent::updateMagnitudes(std::vector<double>& magnitudes, int width)
 {
-    ChainSettings chainSettings = getChainSettings(audioProcessor.apvts);
+    //ChainSettings chainSettings = getChainSettings(audioProcessor.apvts);
     double sampleRate = audioProcessor.getSampleRate();
 
     for (int i = 0; i < width; i++)
@@ -69,66 +69,50 @@ void ResponseCurveComponent::updateMagnitudes(std::vector<double>& magnitudes, i
 
         double freq = juce::mapToLog10(double(i) / double(width), 20.0, 20000.0);
 
-        this->peakCoefficients = makePeakFilter(chainSettings, sampleRate);
+        if (peakCoefficients != nullptr)
+        { 
+            double peakCoeff = peakCoefficients->getMagnitudeForFrequency(freq, sampleRate);
+            mag *= peakCoeff;
+        }
 
-        double peakCoeff = peakCoefficients->getMagnitudeForFrequency(freq,  sampleRate);
-
-        mag *= peakCoeff; 
-
-        this->lowCutCoefficients = makeLowCutFilter(chainSettings, sampleRate);
-
-        switch (chainSettings.lowCutSlope)
+        for (auto filter : lowCutCoefficients)
         {
-
-            case _48dB:
+            if (filter != nullptr)
             {
-                double lowCut3Coeff = lowCutCoefficients[3]->getMagnitudeForFrequency(freq, sampleRate);
-                mag *= lowCut3Coeff;
-            }
-            case _36dB:
-            {
-                double lowCut2Coeff = lowCutCoefficients[2]->getMagnitudeForFrequency(freq, sampleRate);
-                mag *= lowCut2Coeff;
-            }
-            case _24dB:
-            {
-                double lowCut1Coeff = lowCutCoefficients[1]->getMagnitudeForFrequency(freq, sampleRate);
-                mag *= lowCut1Coeff;
-            }
-            case _12dB:
-            {
-                double lowCut0Coeff = lowCutCoefficients[0]->getMagnitudeForFrequency(freq, sampleRate);
-                mag *= lowCut0Coeff;
+                mag *= filter->getMagnitudeForFrequency(freq, sampleRate);
             }
         }
-        this->highCutCoefficients = makeHighCutFilter(chainSettings, sampleRate);
+
+        for (auto filter : highCutCoefficients)
+        {
+            if (filter != nullptr)
+            {
+                mag *= filter->getMagnitudeForFrequency(freq, sampleRate);
+            }
+        }
         
-        switch (chainSettings.highCutSlope)
-        {
-
-            case _48dB:
-            {
-                double highCut3Coeff = highCutCoefficients[3]->getMagnitudeForFrequency(freq, sampleRate);
-                mag *= highCut3Coeff;
-            }
-            case _36dB:
-            {
-                double highCut2Coeff = highCutCoefficients[2]->getMagnitudeForFrequency(freq, sampleRate);
-                mag *= highCut2Coeff;
-            }
-            case _24dB:
-            {
-                double highCut1Coeff = highCutCoefficients[1]->getMagnitudeForFrequency(freq, sampleRate);
-                mag *= highCut1Coeff;
-            }
-            case _12dB:
-            {
-                double highCut0Coeff = highCutCoefficients[0]->getMagnitudeForFrequency(freq, sampleRate);
-                mag *= highCut0Coeff;
-            }
-        }
         magnitudes[i] = juce::Decibels::gainToDecibels(mag);
     }
+}
+
+//void ResponseCurveComponent::updateMagnitudeByCutCoefficients(double& mag, CoefficientsArray cutCoefficients)
+//{
+//    for (auto filter : cutCoefficients)
+//    {
+//        if (filter != nullptr)
+//        {
+//            mag *= filter->getMagnitudeForFrequency(freq, sampleRate);
+//        }
+//    }
+//}
+
+void ResponseCurveComponent::updateFilters()
+{
+    ChainSettings chainSettings = getChainSettings(audioProcessor.apvts);
+    double sampleRate = audioProcessor.getSampleRate();
+    this->peakCoefficients = makePeakFilter(chainSettings, sampleRate);
+    this->lowCutCoefficients = makeLowCutFilter(chainSettings, sampleRate);
+    this->highCutCoefficients = makeHighCutFilter(chainSettings, sampleRate);
 }
 
 
@@ -235,6 +219,7 @@ void SimpleEQAudioProcessorEditor::timerCallback()
 {
     if (parametersChanged.compareAndSetBool(false, true))
     {  
+        responseCurveComponent.updateFilters();
         responseCurveComponent.repaint();
     }
 }
