@@ -64,6 +64,12 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
     juce::Range<double> range = getRange();
     juce::Rectangle<int> sliderBounds = getSliderBounds();
 
+    g.setColour(juce::Colours::red);
+    g.drawRect(getLocalBounds());
+    g.setColour(juce::Colours::yellow);
+    g.drawRect(sliderBounds);
+
+
     getLookAndFeel().drawRotarySlider(g,
                                     sliderBounds.getX(),
                                     sliderBounds.getY(),
@@ -77,7 +83,16 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
 
 juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const
 {
-    return getLocalBounds();
+    auto bounds = getLocalBounds();
+    auto size = juce::jmin(bounds.getWidth(), bounds.getHeight());
+    size -= getTextHeight();
+
+    juce::Rectangle<int> r;
+    r.setSize(size, size);
+    r.setCentre(bounds.getCentreX(), 0);
+    r.setY(2);
+
+    return r;
 }
 
 // ResponseCurveComponent
