@@ -83,10 +83,11 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
     juce::Range<double> range = getRange();
     juce::Rectangle<int> sliderBounds = getSliderBounds();
 
-    g.setColour(juce::Colours::red);
-    g.drawRect(getLocalBounds());
-    g.setColour(juce::Colours::yellow);
-    g.drawRect(sliderBounds);
+    // Slider and Component Bounds
+    //g.setColour(juce::Colours::red);
+    //g.drawRect(getLocalBounds());
+    //g.setColour(juce::Colours::yellow);
+    //g.drawRect(sliderBounds);
 
 
     getLookAndFeel().drawRotarySlider(g,
@@ -121,7 +122,41 @@ juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const
 
 juce::String RotarySliderWithLabels::getDisplayString() const
 {
-    return juce::String(getValue());
+    if (auto* choiceParam = dynamic_cast<juce::AudioParameterChoice*>(param))
+    {
+        return choiceParam->getCurrentChoiceName();
+    }
+
+    bool addK = false;
+    juce::String str;
+
+    if (auto* floatParam = dynamic_cast<juce::AudioParameterFloat*>(param))
+    {
+        float val = getValue();
+
+        if (val > 999.99f)
+        {
+            addK = true;
+            val /= 1000.f;
+        }
+
+        str = juce::String(val, (addK ? 2 : 0));
+
+
+        if (suffix.isNotEmpty())
+        {
+            str << " ";
+
+            if (addK)
+                str << "k";
+
+            str << suffix;
+        }
+
+        return str;
+    }
+    else
+        jassertfalse;
 }
 
 // ResponseCurveComponent
@@ -237,7 +272,7 @@ SimpleEQAudioProcessorEditor::SimpleEQAudioProcessorEditor (SimpleEQAudioProcess
     : AudioProcessorEditor (&p), audioProcessor (p),
     // Slider
     peakFilterFreqSlider(*audioProcessor.apvts.getParameter("Peak Freq"), "Hz"),
-    peakFilterGainSlider(*audioProcessor.apvts.getParameter("Peak Gain"), "Hz"),
+    peakFilterGainSlider(*audioProcessor.apvts.getParameter("Peak Gain"), "dB"),
     peakFilterQualitySlider(*audioProcessor.apvts.getParameter("Peak Quality"), ""),
     lowCutSlopeSlider(*audioProcessor.apvts.getParameter("LowCut Slope"), "db/Oct"),
     lowCutFreqSlider(*audioProcessor.apvts.getParameter("LowCut Freq"), "Hz"),
