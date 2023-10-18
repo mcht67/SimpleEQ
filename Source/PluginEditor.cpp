@@ -24,11 +24,11 @@ void LookAndFeel::drawRotarySlider(juce::Graphics& g,
     auto bounds = juce::Rectangle<float>(x, y, width, height);
 
     // draw circle area
-    g.setColour(juce::Colours::aliceblue);
+    g.setColour(juce::Colours::blanchedalmond);
     g.fillEllipse(bounds);
 
     // draw circle border
-    g.setColour(juce::Colours::magenta);
+    g.setColour(juce::Colours::midnightblue);
     g.drawEllipse(bounds, 1.f);
 
     // check if it is a rotarySliderWithLabels
@@ -99,6 +99,36 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
                                     startAng,
                                     endAng,
                                     *this);
+    // draw min/max values
+    juce::Point<float> center = sliderBounds.toFloat().getCentre();
+    float radius = sliderBounds.getWidth() * 0.5f;
+    
+    g.setColour(juce::Colours::honeydew);
+    g.setFont(getTextHeight());
+
+
+    int numChoices = labels.size();
+    for (size_t i = 0; i < numChoices; i++)
+    {
+        auto pos = labels[i].pos;
+        jassert(0.f <= pos);
+        jassert(pos <= 1.f);
+        
+        auto ang = juce::jmap(pos, 0.f, 1.f, startAng, endAng);
+
+        // get center of textbox
+        auto c = center.getPointOnCircumference(radius + getTextHeight() * 0.5f + 1, ang);
+
+        // place textbox
+        juce::Rectangle<float> r;
+        auto str = labels[i].label;
+        r.setSize(g.getCurrentFont().getStringWidth(str), getTextHeight());
+        r.setCentre(c);
+        r.setY(r.getY() + getTextHeight());
+
+        g.drawFittedText(str, r.toNearestInt(), juce::Justification::centred, 1);
+
+    }
 }
 
 juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const
@@ -293,6 +323,25 @@ SimpleEQAudioProcessorEditor::SimpleEQAudioProcessorEditor (SimpleEQAudioProcess
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
+
+    // min-max values and their positions
+    peakFilterQualitySlider.labels.add({ 0.f, "0.1" });
+    peakFilterQualitySlider.labels.add({ 1.f, "10" });
+    peakFilterGainSlider.labels.add({ 0.f, "-24dB" });
+    peakFilterGainSlider.labels.add({ 1.f, "+24dB" });
+    peakFilterFreqSlider.labels.add({ 0.f, "20Hz" });
+    peakFilterFreqSlider.labels.add({ 1.f, "20kHz" });
+
+    lowCutSlopeSlider.labels.add({ 0.f, "12db/Oct" });
+    lowCutSlopeSlider.labels.add({ 1.f, "48db/Oct" });
+    lowCutFreqSlider.labels.add({ 0.f, "20Hz" });
+    lowCutFreqSlider.labels.add({ 1.f, "20kHz" });
+
+    highCutSlopeSlider.labels.add({ 0.f, "12db/Oct" });
+    highCutSlopeSlider.labels.add({ 1.f, "48db/Oct" });
+    highCutFreqSlider.labels.add({ 0.f, "20Hz" });
+    highCutFreqSlider.labels.add({ 1.f, "20kHz" });
+    
     for (auto* component : SimpleEQAudioProcessorEditor::getComponents())
     {
         addAndMakeVisible(component);
@@ -304,6 +353,8 @@ SimpleEQAudioProcessorEditor::SimpleEQAudioProcessorEditor (SimpleEQAudioProcess
     {
         param->addListener(this);
     }
+
+    responseCurveComponent.updateFilters();
 
     startTimer(60);
 
@@ -337,10 +388,15 @@ void SimpleEQAudioProcessorEditor::resized()
     // subcomponents in your editor..
 
     auto area = getLocalBounds();
+    auto hRatio = 37.f / 100.f;
 
-    auto responseCurveArea = area.removeFromTop(area.getHeight() * 0.33);
+    auto responseCurveArea = area.removeFromTop(area.getHeight() * hRatio);
     auto slidersArea = area;
 
+    // margins
+    slidersArea.removeFromTop(7);
+    slidersArea.removeFromBottom(7);
+   
     float FilterAreaSize = area.getWidth() * 0.33;
     auto lowCutArea = slidersArea.removeFromLeft(FilterAreaSize);
     auto peakFilterArea = slidersArea.removeFromLeft(FilterAreaSize);
