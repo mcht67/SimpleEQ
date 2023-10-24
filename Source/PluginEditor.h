@@ -67,8 +67,14 @@ struct ResponseCurveComponent : juce::Component {
         Coefficients peakCoefficients;
         CoefficientsArray lowCutCoefficients;
         CoefficientsArray highCutCoefficients;
+        juce::Image backgroundGrid;
+
         void paint(juce::Graphics& g) override;
+        void resized() override;
+        juce::Rectangle<int> getRenderArea();
+        juce::Rectangle<int> getAnalysisArea();
         void updateMagnitudes (std::vector<double>& magnitudes, int width);
+
         //void updateMagnitudeByCutCoefficients(double& mag, CoefficientsArray cutCoefficients);
 };
 

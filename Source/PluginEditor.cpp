@@ -204,20 +204,29 @@ ResponseCurveComponent::~ResponseCurveComponent()
 
 void ResponseCurveComponent::paint(juce::Graphics& g) 
 {
-    ////using namespace juce;
+    auto analysisArea = getAnalysisArea();
+    auto renderArea = getRenderArea();
 
-    int width = getWidth();
+    // draw backgroundGrid
+    g.drawImageAt(backgroundGrid, renderArea.getX(), renderArea.getY());
+
+    //g.setColour(juce::Colours::yellow);
+    //g.drawRect(getAnalysisArea());
+
+    //g.setColour(juce::Colours::red);
+    //g.drawRect(getRenderArea());
+
+    // draw ResponseCurve
+    int width = analysisArea.getWidth();
 
     std::vector<double> magnitudes(width, 1.f);
 
     updateMagnitudes(magnitudes, width);
 
-    // DRAWING
-    
     juce::Path responseCurve;
 
-    const double outputMin = getBottom();
-    const double outputMax = getY();
+    const double outputMin = analysisArea.getBottom();
+    const double outputMax = analysisArea.getY();
 
     // lambda to map input value y-coordinate
     auto map = [outputMin, outputMax](double input)
@@ -225,20 +234,86 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
             return juce::jmap(input, -24.0, 24.0, outputMin, outputMax);
         };
 
-    responseCurve.startNewSubPath( getX(), map(magnitudes[0]) );
+    responseCurve.startNewSubPath( analysisArea.getX(), map(magnitudes[0]) );
 
     for (size_t i = 1; i < magnitudes.size(); i++)
     {
-        responseCurve.lineTo( getX() + i, map(magnitudes[i]) );
+        double y = map(magnitudes[i]);
+        //if (y < renderArea.getBottom())
+        responseCurve.lineTo( analysisArea.getX() + i, map(magnitudes[i]) );
     }
-
-    g.setColour(juce::Colours::orange);
-    g.drawRoundedRectangle(getLocalBounds().toFloat(), 4.f, 1.f);
 
     g.setColour(juce::Colours::white);
     g.strokePath( responseCurve, juce::PathStrokeType(2.f) );
 
+    g.setColour(juce::Colours::orange);
+    g.drawRoundedRectangle(renderArea.toFloat(), 4.f, 2.f);
+
 };
+
+void ResponseCurveComponent::resized() {
+    
+    // preparation backgroundGrid    
+    juce::Rectangle<float> analysisArea = getAnalysisArea().toFloat();
+    juce::Rectangle<float> renderArea = getRenderArea().toFloat();
+
+    backgroundGrid = juce::Image(juce::Image::PixelFormat::RGB, renderArea.getWidth(), renderArea.getHeight(), true);
+    juce::Graphics g(backgroundGrid);
+
+    std::vector<float> freqs = {
+        20, 30, 40, 50, 100,
+        200, 300, 400, 500, 1000,
+        2000, 3000, 4000, 5000, 10000,
+        20000
+    };
+    
+    std::vector<float> gains = {
+        -24.f, -12.f, 0.f, 12.f, 24.f
+    };
+
+    //auto left = analysisArea.getX();
+    //auto right = analysisArea.getRight();
+    //auto top = analysisArea.getY();
+    //auto bottom = analysisArea.getBottom();
+    //auto width = analysisArea.getWidth();
+    
+    // drawing backgroundGrid
+    g.setColour(juce::Colours::steelblue);
+
+    for (float f : freqs) {
+        // map to normalised value
+        float normX = juce::mapFromLog10(f, 20.f, 20000.f);
+
+        // draw line
+        g.drawVerticalLine(analysisArea.getWidth() * normX, 0.f, renderArea.getHeight());
+    }
+    auto y_offset = renderArea.getBottom() - analysisArea.getBottom();
+    for (float gain : gains)
+    {
+        // normalise
+        auto y = juce::jmap(gain, -24.f, 24.f, 0.f, analysisArea.getHeight());
+        g.setColour(gain == 0 ? juce::Colours::greenyellow : juce::Colours::steelblue);
+        g.drawHorizontalLine(y + y_offset, 0.f, renderArea.getWidth());
+    }
+};
+
+juce::Rectangle<int> ResponseCurveComponent::getRenderArea() {
+    auto renderArea = this->getBounds();
+    renderArea.removeFromTop(15);
+    renderArea.removeFromBottom(2);
+    renderArea.removeFromLeft(20);
+    renderArea.removeFromRight(20);
+    return renderArea;
+}
+
+juce::Rectangle<int> ResponseCurveComponent::getAnalysisArea() {
+
+    auto analysisArea = getRenderArea();
+    analysisArea.removeFromTop(5);
+    analysisArea.removeFromBottom(5);
+
+    return analysisArea;
+}
 
 void ResponseCurveComponent::updateMagnitudes(std::vector<double>& magnitudes, int width)
 {
@@ -275,17 +350,6 @@ void ResponseCurveComponent::updateMagnitudes(std::vector<double>& magnitudes, i
         magnitudes[i] = juce::Decibels::gainToDecibels(mag);
     }
 }
-
-//void ResponseCurveComponent::updateMagnitudeByCutCoefficients(double& mag, CoefficientsArray cutCoefficients)
-//{
-//    for (auto filter : cutCoefficients)
-//    {
-//        if (filter != nullptr)
-//        {
-//            mag *= filter->getMagnitudeForFrequency(freq, sampleRate);
-//        }
-//    }
-//}
 
 void ResponseCurveComponent::updateFilters()
 {
