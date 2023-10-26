@@ -246,8 +246,8 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
     g.setColour(juce::Colours::white);
     g.strokePath( responseCurve, juce::PathStrokeType(2.f) );
 
-    g.setColour(juce::Colours::orange);
-    g.drawRoundedRectangle(renderArea.toFloat(), 4.f, 2.f);
+    //g.setColour(juce::Colours::orange);
+    //g.drawRoundedRectangle(renderArea.toFloat(), 4.f, 2.f);
 
 };
 
@@ -276,6 +276,8 @@ void ResponseCurveComponent::resized() {
     //auto top = analysisArea.getY();
     //auto bottom = analysisArea.getBottom();
     //auto width = analysisArea.getWidth();
+    auto x_offset = analysisArea.getX() - renderArea.getX();
+    auto y_offset = renderArea.getBottom() - analysisArea.getBottom();
     
     // drawing backgroundGrid
     g.setColour(juce::Colours::steelblue);
@@ -285,9 +287,9 @@ void ResponseCurveComponent::resized() {
         float normX = juce::mapFromLog10(f, 20.f, 20000.f);
 
         // draw line
-        g.drawVerticalLine(analysisArea.getWidth() * normX, 0.f, renderArea.getHeight());
+        g.drawVerticalLine(analysisArea.getWidth() * normX + x_offset, 0.f, renderArea.getHeight());
     }
-    auto y_offset = renderArea.getBottom() - analysisArea.getBottom();
+    
     for (float gain : gains)
     {
         // normalise
@@ -295,6 +297,8 @@ void ResponseCurveComponent::resized() {
         g.setColour(gain == 0 ? juce::Colours::greenyellow : juce::Colours::steelblue);
         g.drawHorizontalLine(y + y_offset, 0.f, renderArea.getWidth());
     }
+
+
 };
 
 juce::Rectangle<int> ResponseCurveComponent::getRenderArea() {
