@@ -71,6 +71,10 @@ struct ResponseCurveComponent : juce::Component {
 
         void paint(juce::Graphics& g) override;
         void resized() override;
+        void ResponseCurveComponent::drawAnalysisGrid(juce::Graphics& g);
+        void drawFreqLabels(juce::Graphics& g);
+        std::vector<float> getGains();
+        std::vector<float> getFreqs();
         juce::Rectangle<int> getRenderArea();
         juce::Rectangle<int> getAnalysisArea();
         void updateMagnitudes (std::vector<double>& magnitudes, int width);

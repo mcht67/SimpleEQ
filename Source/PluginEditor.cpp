@@ -208,7 +208,9 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
     auto renderArea = getRenderArea();
 
     // draw backgroundGrid
-    g.drawImageAt(backgroundGrid, renderArea.getX(), renderArea.getY());
+    //g.drawImageAt(backgroundGrid, renderArea.getX(), renderArea.getY());
+    drawFreqLabels(g);
+    drawAnalysisGrid(g);
 
     //g.setColour(juce::Colours::yellow);
     //g.drawRect(getAnalysisArea());
@@ -252,54 +254,131 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
 };
 
 void ResponseCurveComponent::resized() {
-    
+
     // preparation backgroundGrid    
-    juce::Rectangle<float> analysisArea = getAnalysisArea().toFloat();
+ /*   juce::Rectangle<float> analysisArea = getAnalysisArea().toFloat();
     juce::Rectangle<float> renderArea = getRenderArea().toFloat();
 
-    backgroundGrid = juce::Image(juce::Image::PixelFormat::RGB, renderArea.getWidth(), renderArea.getHeight(), true);
-    juce::Graphics g(backgroundGrid);
+    auto x_offset = analysisArea.getX() - renderArea.getX();
+    auto y_offset = renderArea.getBottom() - analysisArea.getBottom();
 
-    std::vector<float> freqs = {
-        20, 30, 40, 50, 100,
-        200, 300, 400, 500, 1000,
-        2000, 3000, 4000, 5000, 10000,
-        20000
-    };
-    
-    std::vector<float> gains = {
-        -24.f, -12.f, 0.f, 12.f, 24.f
-    };
+    backgroundGrid = juce::Image(juce::Image::PixelFormat::RGB, renderArea.getWidth(), renderArea.getHeight(), true);
+    juce::Graphics g(backgroundGrid);*/
 
     //auto left = analysisArea.getX();
     //auto right = analysisArea.getRight();
     //auto top = analysisArea.getY();
     //auto bottom = analysisArea.getBottom();
     //auto width = analysisArea.getWidth();
-    auto x_offset = analysisArea.getX() - renderArea.getX();
-    auto y_offset = renderArea.getBottom() - analysisArea.getBottom();
-    
-    // drawing backgroundGrid
+
+
+    //// draw backgroundGrid
+    //    g.setColour(juce::Colours::steelblue);
+
+    //    for (float f : getFreqs()) {
+    //        // map to normalised value
+    //        float normX = juce::mapFromLog10(f, 20.f, 20000.f);
+
+    //        // draw line
+    //        g.drawVerticalLine(analysisArea.getWidth() * normX + x_offset, 0.f, renderArea.getHeight());
+    //    }
+
+    //    for (float gain : getGains())
+    //    {
+    //        // normalise
+    //        auto y = juce::jmap(gain, -24.f, 24.f, 0.f, analysisArea.getHeight());
+    //        g.setColour(gain == 0 ? juce::Colours::greenyellow : juce::Colours::steelblue);
+    //        g.drawHorizontalLine(y + y_offset, 0.f, renderArea.getWidth());
+    //    }
+};
+
+void ResponseCurveComponent::drawAnalysisGrid(juce::Graphics& g)
+{
+    // preparation backgroundGrid 
+    juce::Rectangle<float> analysisArea = getAnalysisArea().toFloat();
+    juce::Rectangle<float> renderArea = getRenderArea().toFloat();
+
+    auto x_offset = analysisArea.getX() - getLocalBounds().getX();
+    auto y_offset = getLocalBounds().getBottom()- analysisArea.getBottom();
+
+
+    // draw backgroundGrid
     g.setColour(juce::Colours::steelblue);
 
-    for (float f : freqs) {
+    for (float f : getFreqs()) {
         // map to normalised value
         float normX = juce::mapFromLog10(f, 20.f, 20000.f);
 
         // draw line
-        g.drawVerticalLine(analysisArea.getWidth() * normX + x_offset, 0.f, renderArea.getHeight());
+        g.drawVerticalLine(analysisArea.getWidth() * normX + x_offset, y_offset, renderArea.getHeight());
     }
-    
-    for (float gain : gains)
+
+    for (float gain : getGains())
     {
         // normalise
         auto y = juce::jmap(gain, -24.f, 24.f, 0.f, analysisArea.getHeight());
         g.setColour(gain == 0 ? juce::Colours::greenyellow : juce::Colours::steelblue);
-        g.drawHorizontalLine(y + y_offset, 0.f, renderArea.getWidth());
+        g.drawHorizontalLine(y + y_offset, x_offset, renderArea.getWidth());
     }
 
+}
 
-};
+void ResponseCurveComponent::drawFreqLabels(juce::Graphics& g)
+{
+    // draw frequency-axis legend
+    g.setColour(juce::Colours::lightgrey);
+    const int fontHeight = 10;
+    g.setFont(fontHeight);
+    juce::String str;
+    juce::Rectangle<int> textbox;
+
+    auto analysisArea = getAnalysisArea();
+    auto renderArea = getRenderArea();
+    auto x_offset = analysisArea.getX() - getLocalBounds().getX();
+
+    for (float f : getFreqs()) {
+
+        if (f > 999.99f)
+        {
+            str = juce::String(f / 1000.f);
+            str << "kHz";
+        }
+        else
+        {
+            str = juce::String(f);
+            str << "Hz";
+        }
+
+        // get x coordinate
+        float normX = juce::mapFromLog10(f, 20.f, 20000.f);
+        float x = analysisArea.getWidth() * normX + x_offset;
+
+        // make textbox
+        auto textWidth = g.getCurrentFont().getStringWidth(str);
+        textbox.setSize(textWidth, fontHeight);
+        textbox.setCentre(x, 0);
+        textbox.setY(2);
+
+        g.drawFittedText(str, textbox, juce::Justification::centred, 1);
+    }
+}
+
+std::vector<float> ResponseCurveComponent::getGains()
+{
+    return {
+    -24.f, -12.f, 0.f, 12.f, 24.f
+    };
+}
+
+std::vector<float> ResponseCurveComponent::getFreqs()
+{
+    return {
+        20, 30, /*40,*/ 50, 100,
+        200, 300, /*400,*/ 500, 1000,
+        2000, 3000, /*4000,*/ 5000, 10000,
+        20000
+    };
+}
 
 juce::Rectangle<int> ResponseCurveComponent::getRenderArea() {
     auto renderArea = this->getBounds();
@@ -313,7 +392,8 @@ juce::Rectangle<int> ResponseCurveComponent::getRenderArea() {
 juce::Rectangle<int> ResponseCurveComponent::getAnalysisArea() {
 
     auto analysisArea = getRenderArea();
-    analysisArea.removeFromTop(5);
+    analysisArea.removeFromTop(5); 
+    //analysisArea.removeFromTop(20);
     analysisArea.removeFromBottom(5);
 
     return analysisArea;
